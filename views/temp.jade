@@ -1,0 +1,9 @@
+html
+  head
+    title= _title
+  body
+    h1 Hello Jade //줄바꿈은 새로운 태그임
+    ul
+      -for(var i=0; i<5; i++) //출력하기 위한 코드가 아닌 프로그래밍 적으로 제어하기 위한 코드이기에 마이너스 붙힘
+        li 막형수
+    div=time
