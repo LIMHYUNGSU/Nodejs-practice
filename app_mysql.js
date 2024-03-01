@@ -92,15 +92,16 @@ app.get(['/topic/:id/delete'], function(req,res){
   var sql='SELECT id,title FROM topic';
   var id=req.params.id;
   conn.query(sql,function(err,topics,fields){
-    var sql='SELECT * FROM topic where id=?';
+    var sql='SELECT * FROM topic where id=?';//그 행이 실제로 있는지 확인하는것!
     conn.query(sql,[id],function(err,topic,fields){
       if(err){
         console.log(err);
         res.status(500).send('Internal Server Error');
       }else{
+        //res.send(topic);
         if(topic.length===0){
-          console.log('There is no record');
-          res.status(500).send('Internal Server Error');
+          console.log('There is no id.');
+          res.status(500).send('Internal Server Error!!!');
         }else{
           res.render('delete',{topics:topics,topic:topic[0]});
         }
@@ -114,6 +115,7 @@ app.post(['/topic/:id/delete'], function(req,res){
   var id=req.params.id;
   var sql='Delete From topic where id=?';
   conn.query(sql,[id], function(err,result){
+    //res.send(result);
     res.redirect('/topic/');
   })
 });
