@@ -6,6 +6,7 @@ var bkfd2Password = require("pbkdf2-password");
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+var FacebookStrategy = require('passport-facebook').Strategy;
 var hasher = bkfd2Password();
 
 
@@ -32,11 +33,16 @@ app.get('/count',function(req,res){
   res.send('count : '+req.session.count);
 });
 
-app.get('/auth/logout', function(req, res){
-  req.logOut();
-  req.session.save(function(err){
-    if(err) throw err;
+
+app.get('/auth/logout', function(req, res, next) {
+  req.logout(function(err) {
+    if (err) {
+        return next(err);
+    }else{
+      req.session.save(function(){
         res.redirect('/welcome');
+      });
+    }
   });
 });
 
@@ -146,6 +152,21 @@ passport.use(new LocalStrategy(
    //res.send('Who are you? <a href="/auth/login">login</a>');
  }
 ));
+
+// 앱ID랑 secret 번호 유출 조심!! 나는 바로 지울거얌
+passport.use(new FacebookStrategy({
+    clientID: '422708880282058',
+    clientSecret: '7b7d1b3d562359bbc6b4d68300890f58',
+    callbackURL: "/auth/facebook/callback"
+  },
+  function(accessToken, refreshToken, profile, cb) {
+    User.findOrCreate({ facebookId: profile.id }, function (err, user) {
+      return cb(err, user);
+    });
+  }
+));
+
+
 app.post( //콜백 대신에 passport가 위임해서 post해주는것
   '/auth/login',
   //이 밑에 이것들은 middleware라고 한
@@ -157,6 +178,21 @@ app.post( //콜백 대신에 passport가 위임해서 post해주는것
       failureFlash: false //왜 인증에 실패했는지 메세지 보내주는 근데 우리는 일단 스킵
     }
   )
+);
+
+//인증을 하는 과정에서 facebook과 나의 app이 왔다갔다 하는 작업을 한번 더 하기에
+app.get('/auth/facebook',
+  passport.authenticate('facebook'));
+
+app.get('/auth/facebook/callback',
+  passport.authenticate('facebook',
+  {
+    failureRedirect: '/auth/login'
+  }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/welcome');
+  }
 );
 
 // app.post('/auth/login',function(req,res){
@@ -194,6 +230,7 @@ app.get('/auth/login',function(req,res){
       <input type="submit">
     </p>
   </form>
+  <a href="/auth/facebook"> facebook</a>
   `;
   res.send(output);
 })
