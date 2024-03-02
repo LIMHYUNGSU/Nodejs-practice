@@ -1,14 +1,13 @@
 var express=require('express');
 var session=require('express-session');
 var FileStore = require('session-file-store')(session);
-
+var bodyParser=require('body-parser');
 var bkfd2Password = require("pbkdf2-password");
-var hasher = bkfd2Password();
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+var hasher = bkfd2Password();
 
-var bodyParser=require('body-parser');
 
 var sha256=require('sha256');
 var app=express();
@@ -18,7 +17,7 @@ app.use(session({
   secret: 'sd124adsdafase11',
   resave: false,
   saveUninitialized: true,
-  store:new FileStore
+  store:new FileStore()
 }))
 
 app.use(passport.initialize());
@@ -34,11 +33,13 @@ app.get('/count',function(req,res){
 });
 
 app.get('/auth/logout', function(req, res){
-  req.logout();
-  req.session.save(function(){
-    res.redirect('/welcome');
+  req.logOut();
+  req.session.save(function(err){
+    if(err) throw err;
+        res.redirect('/welcome');
   });
 });
+
 
 app.get('/welcome',function(req,res){
   if(req.user && req.user.displayName){
@@ -101,7 +102,8 @@ app.get('/auth/register',function(req,res){
   `;
   res.send(output);
 });
-
+//passport session
+//로그인 인증과 관련된것을 할때 사용자가 인증되었는지 여부를 session정보를 통해 유지한다.
 passport.serializeUser(function(user, done) {
   console.log('serializeUser', user);
   done(null,user.username);
@@ -119,9 +121,9 @@ passport.deserializeUser(function(id, done) {
 
 
 passport.use(new LocalStrategy(
-  function(username,password,done){
-    var uname=username;
-    var pwd=password;
+  function(username, password, done){
+    var uname = username;
+    var pwd = password;
     for(var i=0; i<users.length; i++){
       var user=users[i];
       if(uname===user.username){
@@ -144,10 +146,11 @@ passport.use(new LocalStrategy(
    //res.send('Who are you? <a href="/auth/login">login</a>');
  }
 ));
-app.post(
+app.post( //콜백 대신에 passport가 위임해서 post해주는것
   '/auth/login',
+  //이 밑에 이것들은 middleware라고 한
   passport.authenticate(
-    'local',
+    'local', //passport 전략중에 local 이라는 로그인 방식이 실행 되는것! 그리고 위에 new LocalStrategy의 콜백 함수가 실행 되도록 약속이 되어 있는것!
     {
       successRedirect:'/welcome',
       failureRedirect: '/auth/login',
