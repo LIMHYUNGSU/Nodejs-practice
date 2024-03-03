@@ -63,6 +63,7 @@ app.get('/welcome',function(req,res){
 });
 var users=[
   {
+    authId:'local:gud8926',
     username:'gud8926',
     password:'cm0AwW86Lm/cqmTIW87xLi87kxDNX8Hh1BwrlJxy2Gm31pNzXM6Mb1K8B6RxAKySAKRX/Fb2b1HDEyjVJEnpYmCxaZGz2/YWLlZz/1u25cB3peT2WXKpXnd5iet1PbYkpqAH254fHidW7R/Mz8YKTtQFjZp0p8dixb0gk0sHYnc=',
     salt:'A74nAk8lBg5OA6v7R/yEGH+shBEiagOgX6hYkVIFMUyQ1yYBIEpg3gmoePJ98giGPFJF1x7m1q6VrdtDXwZ7dw==',
@@ -74,6 +75,7 @@ var users=[
 app.post('/auth/register',function(req,res){
   hasher({password:req.body.password}, function(err,pass,salt,hash){
     var user={
+      authId:'local:'+req.body.username,
       username:req.body.username,
       password:hash,
       salt:salt,
@@ -112,17 +114,18 @@ app.get('/auth/register',function(req,res){
 //로그인 인증과 관련된것을 할때 사용자가 인증되었는지 여부를 session정보를 통해 유지한다.
 passport.serializeUser(function(user, done) {
   console.log('serializeUser', user);
-  done(null,user.username);
+  done(null,user.authId);
 });
 
 passport.deserializeUser(function(id, done) {
   console.log('deserializeUser',id);
   for(var i=0; i<users.length; i++){
     var user=users[i];
-    if(user.username === id){
+    if(user.authId === id){
       return done(null,user);
     }
   }
+  done('There is no user!');
 });
 
 
@@ -157,12 +160,25 @@ passport.use(new LocalStrategy(
 passport.use(new FacebookStrategy({
     clientID: '422708880282058',
     clientSecret: '7b7d1b3d562359bbc6b4d68300890f58',
-    callbackURL: "/auth/facebook/callback"
+    callbackURL: "/auth/facebook/callback",
+    profileFields:['email','displayName']
   },
-  function(accessToken, refreshToken, profile, cb) {
-    User.findOrCreate({ facebookId: profile.id }, function (err, user) {
-      return cb(err, user);
-    });
+  function(accessToken, refreshToken, profile, done) {
+    console.log(profile);
+    var authId='facebook:'+profile.id;
+    for(var i=0; i<users.length;i++){
+      var user=users[i];
+      if(user.authId===authId){ //이미 users배열에 존재하는 user인지 확인하는
+        return done(null, user); //인증된 사용자!!
+      }
+    }
+    var newuser={ //users라는 배열에 새로운 유저를 push 하것다!!!
+      'authId':authId,
+      'displayName':profile.displayName,
+      'email':profile.emails[0].value
+    };
+    users.push(newuser);
+    done(null,newuser);
   }
 ));
 
@@ -182,7 +198,13 @@ app.post( //콜백 대신에 passport가 위임해서 post해주는것
 
 //인증을 하는 과정에서 facebook과 나의 app이 왔다갔다 하는 작업을 한번 더 하기에
 app.get('/auth/facebook',
-  passport.authenticate('facebook'));
+  passport.authenticate('facebook',{
+      scope:'email'
+    }
+  )
+);
+
+
 
 app.get('/auth/facebook/callback',
   passport.authenticate('facebook',
