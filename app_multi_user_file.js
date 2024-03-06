@@ -7,7 +7,7 @@ var hasher = bkfd2Password();
 
 var bodyParser=require('body-parser');
 
-var sha256=require('sha256');
+
 var app=express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -49,6 +49,7 @@ app.get('/welcome',function(req,res){
 })
 var users=[
   {
+    //hash가 비밀번호가 111111일때 랜덤으로 준 password와 salt 값이다
     username:'gud8926',
     password:'cm0AwW86Lm/cqmTIW87xLi87kxDNX8Hh1BwrlJxy2Gm31pNzXM6Mb1K8B6RxAKySAKRX/Fb2b1HDEyjVJEnpYmCxaZGz2/YWLlZz/1u25cB3peT2WXKpXnd5iet1PbYkpqAH254fHidW7R/Mz8YKTtQFjZp0p8dixb0gk0sHYnc=',
     salt:'A74nAk8lBg5OA6v7R/yEGH+shBEiagOgX6hYkVIFMUyQ1yYBIEpg3gmoePJ98giGPFJF1x7m1q6VrdtDXwZ7dw==',

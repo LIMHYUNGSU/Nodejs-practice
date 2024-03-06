@@ -21,9 +21,9 @@ module.exports=function(passport){
   );
 
   route.get('/facebook',
-    passport.authenticate('facebook',{
-        scope:'email'
-      }
+    passport.authenticate(
+      'facebook',
+      {scope:'email'}
     )
   );
 

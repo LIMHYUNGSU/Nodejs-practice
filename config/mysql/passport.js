@@ -2,11 +2,10 @@
 module.exports=function(app){
   var conn=require('./db')(); //같은 디렉토리에 있기때문에 이렇게만 해도 됨/ 함수 형태 이니깐 () 붙여야 함
   var bkfd2Password = require("pbkdf2-password");
+  var hasher = bkfd2Password();
   var passport = require('passport');
   var LocalStrategy = require('passport-local').Strategy;
   var FacebookStrategy = require('passport-facebook').Strategy;
-  var hasher = bkfd2Password();
-
 
   app.use(passport.initialize());
   app.use(passport.session()); //이것을 사용하기 위해서는 무조건 위에 있는 session 뒤에 있어야 함(session이 정의 되있어야 사용가능하니깐)

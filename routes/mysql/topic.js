@@ -113,7 +113,7 @@ module.exports=function(){
             console.log(err);
             res.status(500).send('Internal Server Error');
           }else{
-            res.render('topic/view',{topics:topics,topic:topic[0]},user:req.user); //topic의 값들은 배열이기에 하나의 값만 가져오기 위해서 0을 붙힌것
+            res.render('topic/view',{topics:topics,topic:topic[0],user:req.user}); //topic의 값들은 배열이기에 하나의 값만 가져오기 위해서 0을 붙힌것
           }
         })
       }else{
